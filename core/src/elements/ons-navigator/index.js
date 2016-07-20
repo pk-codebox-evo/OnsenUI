@@ -505,7 +505,7 @@ class NavigatorElement extends BaseElement {
             leavePage._hide();
             animator.push(enterPage, leavePage, done);
           } else {
-            done();
+            setImmediate(() => done());
           }
         };
 
