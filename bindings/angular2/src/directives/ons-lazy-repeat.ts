@@ -1,19 +1,11 @@
 import {
   Directive,
   ElementRef,
-  provide,
   Input,
-  Output,
   OnDestroy,
-  OnInit,
   TemplateRef,
-  ViewContainerRef,
-  DoCheck,
-  IterableDiffer,
-  ChangeDetectorRef
+  ViewContainerRef
 } from '@angular/core';
-
-declare var ons: any;
 
 export class ItemContext {
   constructor(public $implicit: any, public index: number, public count: number) {
@@ -23,14 +15,21 @@ export class ItemContext {
 /**
  * @element ons-lazy-repeat
  * @directive OnsLazyRepeat
- * @selector ons-lazy-repeat
+ * @selector [ons-lazy-repeat]
  * @description
- *    [en]Angular 2 directive for `<ons-lazy-repeat>` component.[/en]
+ *   [en]Angular 2 directive for `<ons-lazy-repeat>` component.[/en]
+ *   [en]`<ons-lazy-repeat>`要素と同じ機能を提供するAngular 2ディレクティブです。[/en]
+ * @example
+ *   <ons-list>
+ *     <ons-list-item *onsLazyRepeat="let item of items; let i = index">
+ *       #{{i}} {{item.msg}}
+ *     </ons-list-item>
+ *   </ons-list>
  */
 @Directive({
   selector: '[onsLazyRepeat]'
 })
-export class OnsLazyRepeat implements OnDestroy, OnInit {
+export class OnsLazyRepeat implements OnDestroy {
   private _element: any;
   private _provider: any;
   private _onsLazyRepeatOf: any;
@@ -41,13 +40,17 @@ export class OnsLazyRepeat implements OnDestroy, OnInit {
     private _viewContainer: ViewContainerRef) {
   }
 
-  ngOnInit() {
-  }
-
   /**
-   * @input value
-   * @type {string}
-   * @desc [en]Input value.[/en]
+   * @input onsLazyRepeat
+   * @desc
+   *   [en]Render infinite lists with "let of" syntax in Angular 2.[/en]
+   *   [ja]let of式を指定します。[/ja]
+   * @example
+   *  <ons-list>
+   *    <ons-list-item *onsLazyRepeat="let message of messages">
+   *      {{message}}
+   *    </ons-list-item>
+   *  </ons-list>
    */
   @Input() set onsLazyRepeatOf(value: any) {
     this._onsLazyRepeatOf = value;
@@ -74,11 +77,6 @@ export class OnsLazyRepeat implements OnDestroy, OnInit {
     done(view.rootNodes[0]);
   }
 
-  /**
-   * @method refresh
-   * @signature refresh()
-   * @return Promise<any>
-   */
   refresh() {
     if (this._provider) {
       this._viewContainer.clear();

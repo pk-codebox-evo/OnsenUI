@@ -11,11 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import autoStyle from 'ons/autostyle';
-import ModifierUtil from 'ons/internal/modifier-util';
-import BaseElement from 'ons/base-element';
-import util from 'ons/util';
-import contentReady from 'ons/content-ready';
+import autoStyle from '../ons/autostyle';
+import ModifierUtil from '../ons/internal/modifier-util';
+import BaseElement from '../ons/base-element';
+import util from '../ons/util';
+import contentReady from '../ons/content-ready';
+
+const defaultClassName = 'fab';
 
 const scheme = {
   '': 'fab--*'
@@ -23,7 +25,7 @@ const scheme = {
 
 /**
  * @element ons-fab
- * @category fab
+ * @category form
  * @description
  *   [en]
  *     The Floating action button is a circular button defined in the [Material Design specification](https://www.google.com/design/spec/components/buttons-floating-action-button.html). They are often used to promote the primary action of the app.
@@ -32,11 +34,12 @@ const scheme = {
  *   [/en]
  *   [ja][/ja]
  * @tutorial vanilla/Reference/fab
+ * @guide cross-platform-styling [en]Information about cross platform styling[/en][ja]Information about cross platform styling[/ja]
  * @seealso ons-speed-dial
  *   [en]The `<ons-speed-dial>` component is a Floating action button that displays a menu when tapped.[/en]
  *   [ja][/ja]
  */
-class FabElement extends BaseElement {
+export default class FabElement extends BaseElement {
 
   /**
    * @attribute modifier
@@ -68,7 +71,7 @@ class FabElement extends BaseElement {
    *   [ja]ボタンを無効化する場合は指定します。[/ja]
    */
 
-  createdCallback() {
+  init() {
     contentReady(this, () => {
       this._compile();
     });
@@ -77,7 +80,7 @@ class FabElement extends BaseElement {
   _compile() {
     autoStyle.prepare(this);
 
-    this.classList.add('fab');
+    this.classList.add(defaultClassName);
 
     if (!util.findChild(this, '.fab__icon')) {
       const content = document.createElement('span');
@@ -100,8 +103,17 @@ class FabElement extends BaseElement {
     this.show();
   }
 
+  static get observedAttributes() {
+    return ['modifier', 'ripple', 'position', 'class'];
+  }
+
   attributeChangedCallback(name, last, current) {
     switch (name) {
+      case 'class':
+        if (!this.classList.contains(defaultClassName)) {
+          this.className = defaultClassName + ' ' + current;
+        }
+        break;
       case 'modifier':
         ModifierUtil.onModifierChanged(last, current, this, scheme);
         break;
@@ -110,6 +122,7 @@ class FabElement extends BaseElement {
         break;
       case 'position':
         this._updatePosition();
+        break;
     }
   }
 
@@ -227,6 +240,4 @@ class FabElement extends BaseElement {
   }
 }
 
-window.OnsFabElement = document.registerElement('ons-fab', {
-  prototype: FabElement.prototype
-});
+customElements.define('ons-fab', FabElement);

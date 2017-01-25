@@ -15,15 +15,16 @@ limitations under the License.
 
 */
 
-import util from 'ons/util';
-import platform from 'ons/platform';
-import internal from 'ons/internal';
-import autoStyle from 'ons/autostyle';
-import ModifierUtil from 'ons/internal/modifier-util';
-import AnimatorFactory from 'ons/internal/animator-factory';
-import BaseElement from 'ons/base-element';
+import util from '../../ons/util';
+import platform from '../../ons/platform';
+import internal from '../../ons/internal';
+import autoStyle from '../../ons/autostyle';
+import ModifierUtil from '../../ons/internal/modifier-util';
+import AnimatorFactory from '../../ons/internal/animator-factory';
+import BaseElement from '../../ons/base-element';
 import {TabbarAnimator, TabbarFadeAnimator, TabbarNoneAnimator, TabbarSlideAnimator} from './animator';
-import contentReady from 'ons/content-ready';
+import TabElement from '../ons-tab';
+import contentReady from '../../ons/content-ready';
 
 const scheme = {
   '.tab-bar__content': 'tab-bar--*__content',
@@ -44,25 +45,6 @@ const rewritables = {
    */
   ready(tabbarElement, callback) {
     callback();
-  },
-
-  /**
-   * @param {Element} tabbarElement
-   * @param {Element} target
-   * @param {Object} options
-   * @param {Function} callback
-   */
-  link(tabbarElement, target, options, callback) {
-    callback(target);
-  },
-
-  /**
-   * @param {Element} tabbarElement
-   * @param {Element} target
-   * @param {Function} callback
-   */
-  unlink(tabbarElement, target, callback) {
-    callback(target);
   }
 };
 
@@ -79,16 +61,10 @@ const generateId = (() => {
  *   [ja]タブバーをページ下部に表示するためのコンポーネントです。ons-tabと組み合わせて使うことで、ページを管理できます。[/ja]
  * @codepen pGuDL
  * @tutorial vanilla/Reference/tabbar
- * @guide UsingTabBar
- *   [en]Using tab bar[/en]
- *   [ja]タブバーを使う[/ja]
- * @guide EventHandling
- *   [en]Event handling descriptions[/en]
- *   [ja]イベント処理の使い方[/ja]
- * @guide CallingComponentAPIsfromJavaScript
- *   [en]Using navigator from JavaScript[/en]
- *   [ja]JavaScriptからコンポーネントを呼び出す[/ja]
- * @guide DefiningMultiplePagesinSingleHTML
+ * @guide multiple-page-navigation
+ *  [en]Managing multiple pages.[/en]
+ *  [ja]Managing multiple pages[/ja]
+ * @guide templates
  *   [en]Defining multiple pages in single html[/en]
  *   [ja]複数のページを1つのHTMLに記述する[/ja]
  * @seealso ons-tab
@@ -119,7 +95,7 @@ const generateId = (() => {
  *   ...
  * </ons-template>
  */
-class TabbarElement extends BaseElement {
+export default class TabbarElement extends BaseElement {
 
   /**
    * @event prechange
@@ -199,7 +175,7 @@ class TabbarElement extends BaseElement {
    *   [ja]タブバーの位置を指定します。"bottom"もしくは"top"を選択できます。デフォルトは"bottom"です。[/ja]
    */
 
-  createdCallback() {
+  init() {
     this._tabbarId = generateId();
 
     contentReady(this, () => {
@@ -229,7 +205,7 @@ class TabbarElement extends BaseElement {
     });
   }
 
-  attachedCallback() {
+  connectedCallback() {
     contentReady(this, () => this._updatePosition());
   }
 
@@ -248,12 +224,10 @@ class TabbarElement extends BaseElement {
 
       content.classList.add('ons-tab-bar__content');
       bar.classList.add('ons-tab-bar__footer');
-      bar.classList.add('ons-tabbar-inner');
-
     } else {
 
       const content = util.create('.ons-tab-bar__content.tab-bar__content');
-      const tabbar = util.create('.tab-bar.ons-tab-bar__footer.ons-tabbar-inner');
+      const tabbar = util.create('.tab-bar.ons-tab-bar__footer');
 
       while (this.firstChild) {
         tabbar.appendChild(this.firstChild);
@@ -291,6 +265,7 @@ class TabbarElement extends BaseElement {
 
   /**
    * @method loadPage
+   * @deprecated
    * @signature loadPage(url, [options])
    * @param {String} url
    *   [en]Page URL. Can be either an HTML document or an `<ons-template>` id.[/en]
@@ -312,8 +287,10 @@ class TabbarElement extends BaseElement {
    *   [ja][/ja]
    */
   loadPage(page, options = {}) {
+    console.warn('The loadPage method has been deprecated and will be removed in the next minor version.');
+
     return new Promise(resolve => {
-      const tab = this._tabbarElement.children[0] || new OnsTabElement();
+      const tab = this._tabbarElement.children[0] || new TabElement();
       tab._loadPage(page, this._contentElement, pageElement => {
         resolve(this._loadPageDOMAsync(pageElement, options));
       });
@@ -329,20 +306,18 @@ class TabbarElement extends BaseElement {
    */
   _loadPageDOMAsync(pageElement, options = {}) {
     return new Promise(resolve => {
-      rewritables.link(this, pageElement, options, pageElement => {
-        this._contentElement.appendChild(pageElement);
+      this._contentElement.appendChild(pageElement);
 
-        if (this.getActiveTabIndex() !== -1) {
-          resolve(this._switchPage(pageElement, options));
-        } else {
-          if (options.callback instanceof Function) {
-              options.callback();
-          }
-
-          this._oldPageElement = pageElement;
-          resolve(pageElement);
+      if (this.getActiveTabIndex() !== -1) {
+        resolve(this._switchPage(pageElement, options));
+      } else {
+        if (options.callback instanceof Function) {
+            options.callback();
         }
-      });
+
+        this._oldPageElement = pageElement;
+        resolve(pageElement);
+      }
     });
   }
 
@@ -490,81 +465,33 @@ class TabbarElement extends BaseElement {
 
     selectedTab.setActive();
 
-    const needLoad = !options.keepPage;
+    const params = {
+      ...options,
+      previousTabIndex: previousTabIndex,
+      selectedTabIndex: selectedTabIndex
+    };
 
-    util.arrayFrom(this._getTabbarElement().children).forEach((tab) => {
-      if (tab != selectedTab) {
-        tab.setInactive();
-      } else {
-        if (!needLoad) {
-          util.triggerElementEvent(this, 'postchange', {
-            index: selectedTabIndex,
-            tabItem: selectedTab
-          });
-        }
-      }
-    });
-
-    if (needLoad) {
-      let removeElement = false;
-
-      if ((!previousTab && previousPageElement) || (previousTab && previousTab._pageElement !== previousPageElement)) {
-        removeElement = true;
-      }
-
-      const params = {
-        callback: () => {
-          util.triggerElementEvent(this, 'postchange', {
-            index: selectedTabIndex,
-            tabItem: selectedTab
-          });
-
-          if (options.callback instanceof Function) {
-            options.callback();
-          }
-        },
-        previousTabIndex: previousTabIndex,
-        selectedTabIndex: selectedTabIndex
-      };
-
-      if (options.animation) {
-        params.animation = options.animation;
-      }
-
-      params.animationOptions = options.animationOptions || {};
-
-      const link = (element, callback) => {
-        rewritables.link(this, element, options, callback);
-      };
-
-      return new Promise(resolve => {
-        selectedTab._loadPageElement(this._contentElement, pageElement => {
-          pageElement.style.display = 'block';
-          resolve(this._loadPersistentPageDOM(pageElement, params));
-        }, link);
-      });
+    if (previousTab) {
+      previousTab.setInactive();
     } else {
-      return new Promise(resolve => {
-        this._contentElement.appendChild(selectedTab.pageElement);
-        selectedTab.pageElement.style.display = 'block';
-        resolve(this._loadPersistentPageDOM(selectedTab.pageElement, params));
+      params.animation = 'none';
+    }
+
+    return new Promise(resolve => {
+      selectedTab._loadPageElement(this._contentElement, pageElement => {
+        pageElement.removeAttribute('style');
+
+        this._switchPage(pageElement, params)
+          .then(page => {
+            util.triggerElementEvent(this, 'postchange', {
+              index: selectedTabIndex,
+              tabItem: selectedTab
+            });
+
+            return resolve(page);
+          });
       });
-    }
-  }
-
-  /**
-   * @param {Element} element
-   * @param {Object} options
-   * @param {Object} options.animation
-   */
-  _loadPersistentPageDOM(element, options = {}) {
-
-    if (!util.isAttached(element)) {
-      this._contentElement.appendChild(element);
-    }
-
-    element.removeAttribute('style');
-    return this._switchPage(element, options);
+    });
   }
 
   /**
@@ -594,7 +521,7 @@ class TabbarElement extends BaseElement {
     const tabs = this._getTabbarElement().children;
 
     for (var i = 0; i < tabs.length; i++) {
-      if (tabs[i] instanceof window.OnsTabElement && tabs[i].isActive && tabs[i].isActive()) {
+      if (tabs[i] instanceof TabElement && tabs[i].isActive && tabs[i].isActive()) {
         return i;
       }
     }
@@ -616,7 +543,7 @@ class TabbarElement extends BaseElement {
     return this._getTabbarElement().children[index];
   }
 
-  detachedCallback() { }
+  disconnectedCallback() { }
 
   _show() {
     const currentPageElement = this._getCurrentPageElement();
@@ -633,11 +560,15 @@ class TabbarElement extends BaseElement {
   }
 
   _destroy() {
-    const pages = this._contentElement.children;
-    for (let i = pages.length - 1; i >= 0; i--) {
-      pages[i]._destroy();
+    const tabs = this._getTabbarElement().children;
+    for (let i = tabs.length - 1; i >= 0; i--) {
+      tabs[i].remove();
     }
     this.remove();
+  }
+
+  static get observedAttributes() {
+    return ['modifier'];
   }
 
   attributeChangedCallback(name, last, current) {
@@ -645,24 +576,29 @@ class TabbarElement extends BaseElement {
       return ModifierUtil.onModifierChanged(last, current, this, scheme);
     }
   }
+
+  static get rewritables() {
+    return rewritables;
+  }
+
+  static get TabbarAnimator() {
+    return TabbarAnimator;
+  }
+
+  /**
+   * @param {String} name
+   * @param {Function} Animator
+   */
+  static registerAnimator(name, Animator) {
+    if (!(Animator.prototype instanceof TabbarAnimator)) {
+      throw new Error('"Animator" param must inherit TabbarElement.TabbarAnimator');
+    }
+    _animatorDict[name] = Animator;
+  }
+
+  static get animators() {
+    return _animatorDict;
+  }
 }
 
-window.OnsTabbarElement = document.registerElement('ons-tabbar', {
-  prototype: TabbarElement.prototype
-});
-
-/**
- * @param {String} name
- * @param {Function} Animator
- */
-window.OnsTabbarElement.registerAnimator = function(name, Animator) {
-  if (!(Animator.prototype instanceof TabbarAnimator)) {
-    throw new Error('"Animator" param must inherit OnsTabbarElement.TabbarAnimator');
-  }
-  _animatorDict[name] = Animator;
-};
-
-window.OnsTabbarElement.rewritables = rewritables;
-window.OnsTabbarElement.TabbarAnimator = TabbarAnimator;
-
-export default OnsTabbarElement;
+customElements.define('ons-tabbar', TabbarElement);

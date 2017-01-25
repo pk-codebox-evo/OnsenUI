@@ -1,15 +1,16 @@
 import {
-  bootstrap,
   Component,
-  ONS_DIRECTIVES,
   OnsLazyRepeat,
   ViewChild,
-  OnInit
+  OnInit,
+  OnsenModule,
+  NgModule,
+  CUSTOM_ELEMENTS_SCHEMA
 } from '../src/angular2-onsenui';
+import {platformBrowserDynamic} from '@angular/platform-browser-dynamic';
 
 @Component({
   selector: 'app',
-  directives: [ONS_DIRECTIVES],
   template: `
   <ons-page class="page">
     <ons-toolbar>
@@ -18,10 +19,10 @@ import {
       <div class="right"><ons-toolbar-button (click)="add()">Add</ons-toolbar-button></div>
     </ons-toolbar>
 
-    <div class="page__background"></div>
-    <div class="page__content">
+    <div class="background"></div>
+    <div class="content">
       <ons-list>
-        <ons-list-item *onsLazyRepeat="let item of items; let i = index">
+        <ons-list-item id="item-{{ i }}" *onsLazyRepeat="let item of items; let i = index">
           <div class="center">
             #{{i}} msg: {{item.msg}}
           </div>
@@ -53,4 +54,12 @@ export class AppComponent {
   }
 }
 
-bootstrap(AppComponent);
+@NgModule({
+  imports: [OnsenModule],
+  declarations: [AppComponent],
+  bootstrap: [AppComponent],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+})
+class AppModule { }
+
+platformBrowserDynamic().bootstrapModule(AppModule);

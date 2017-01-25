@@ -15,10 +15,11 @@ limitations under the License.
 
 */
 
-import util from 'ons/util';
-import BaseElement from 'ons/base-element';
-import GestureDetector from 'ons/gesture-detector';
-import DoorLock from 'ons/doorlock';
+import util from '../ons/util';
+import BaseElement from '../ons/base-element';
+import GestureDetector from '../ons/gesture-detector';
+import DoorLock from '../ons/doorlock';
+import animit from '../ons/animit';
 
 const VerticalModeTrait = {
 
@@ -145,9 +146,6 @@ const HorizontalModeTrait = {
  * @seealso ons-carousel-item
  *   [en]`<ons-carousel-item>` component[/en]
  *   [ja]ons-carousel-itemコンポーネント[/ja]
- * @guide UsingCarousel
- *   [en]Learn how to use the carousel component.[/en]
- *   [ja]carouselコンポーネントの使い方[/ja]
  * @example
  * <ons-carousel style="width: 100%; height: 200px">
  *   <ons-carousel-item>
@@ -158,7 +156,7 @@ const HorizontalModeTrait = {
  *   </ons-carousel-item>
  * </ons-carousel>
  */
-class CarouselElement extends BaseElement {
+export default class CarouselElement extends BaseElement {
 
   /**
    * @event postchange
@@ -312,7 +310,7 @@ class CarouselElement extends BaseElement {
    *   [ja]アニメーション時のduration, timing, delayをオブジェクトリテラルで指定します。例：{duration: 0.2, delay: 1, timing: 'ease-in'}[/ja]
    */
 
-  createdCallback() {
+  init() {
     this._doorLock = new DoorLock();
     this._scroll = 0;
     this._offset = 0;
@@ -546,7 +544,7 @@ class CarouselElement extends BaseElement {
     const elementSize = this._getElementSize();
     const carouselItemSize = this._getCarouselItemSize();
 
-    return this.autoScroll && elementSize === carouselItemSize;
+    return this.autoScroll && Math.abs(elementSize - carouselItemSize) < 0.5;
   }
 
   /**
@@ -957,7 +955,7 @@ class CarouselElement extends BaseElement {
     );
   }
 
-  attachedCallback() {
+  connectedCallback() {
     this._prepareEventListeners();
 
     this._setup();
@@ -969,6 +967,10 @@ class CarouselElement extends BaseElement {
     if (this.offsetHeight === 0) {
       setImmediate(() => this.refresh());
     }
+  }
+
+  static get observedAttributes() {
+    return ['swipeable', 'auto-refresh', 'direction'];
   }
 
   attributeChangedCallback(name, last, current) {
@@ -984,7 +986,7 @@ class CarouselElement extends BaseElement {
     }
   }
 
-  detachedCallback() {
+  disconnectedCallback() {
     this._removeEventListeners();
   }
 
@@ -1094,6 +1096,4 @@ class CarouselElement extends BaseElement {
   }
 }
 
-window.OnsCarouselElement = document.registerElement('ons-carousel', {
-  prototype: CarouselElement.prototype
-});
+customElements.define('ons-carousel', CarouselElement);

@@ -55,7 +55,8 @@ h6 {
   left: 0px;
   right: 0px;
   bottom: 0px;
-  overflow: visible;
+  overflow-x: visible;
+  overflow-y: hidden;
   font-size: 17px;
   color: #1f1f21;
   -ms-overflow-style: none;
@@ -370,8 +371,8 @@ input:disabled + .switch__toggle {
   box-shadow: 0px 0px 0px 14px rgba(0,0,0,0.12);
 }
 .switch.switch--material.switch--active input:checked + .switch__toggle .switch__handle:before {
-  -webkit-box-shadow: 0px 0px 0px 14px 1;
-  box-shadow: 0px 0px 0px 14px 1;
+  -webkit-box-shadow: 0px 0px 0px 14px rgba(0,150,136,0.2);
+  box-shadow: 0px 0px 0px 14px rgba(0,150,136,0.2);
 }
 .switch.switch--material .switch__touch {
   position: absolute;
@@ -845,30 +846,6 @@ ons-range[disabled] .range {
     </div>
 */
 /* topdoc
-  name: Transparent Navigation Bar
-  class: navigation-bar--transparent
-  use: Toolbar Button, Navigation Bar
-  markup:
-    <div class="navigation-bar navigation-bar--transparent">
-      <div class="navigation-bar__left">
-        <span class="toolbar-button--quiet">
-          <i class="ion-navicon" style="font-size:32px; vertical-align:-6px;"></i>
-        </span>
-      </div>
-      <div class="navigation-bar__center">
-        Navigation Bar
-      </div>
-      <div class="navigation-bar__right">
-        <span class="toolbar-button--quiet">Label</span>
-      </div>
-    </div>
-*/
-.navigation-bar--transparent {
-  background-color: transparent;
-  background-image: none;
-  border: none;
-}
-/* topdoc
   name: Navigation Bar with Outline Button
   use: Toolbar Button, Navigation Bar
   markup:
@@ -889,31 +866,6 @@ ons-range[disabled] .range {
       </div>
     </div>
 */
-/* topdoc
-  name: Transparent Navigation Bar
-  class: navigation-bar--transparent
-  use: Toolbar Button, Navigation Bar
-  markup:
-    <!-- Prerequisite=This example use ionicons(http://ionicons.com) to display icons. -->
-    <div class="navigation-bar navigation-bar--transparent">
-      <div class="navigation-bar__left">
-        <span class="toolbar-button--quiet">
-          <i class="ion-navicon" style="font-size:32px; vertical-align:-6px;"></i>
-        </span>
-      </div>
-      <div class="navigation-bar__center">
-        Navigation Bar
-      </div>
-      <div class="navigation-bar__right">
-        <span class="toolbar-button--quiet">Label</span>
-      </div>
-    </div>
-*/
-.navigation-bar--transparent {
-  background-color: transparent;
-  background-image: none;
-  border: none;
-}
 /* topdoc
   name: Bottom Bar
   class: bottom-bar
@@ -1049,6 +1001,25 @@ ons-range[disabled] .range {
   -webkit-background-size: 0;
   background-size: 0;
 }
+/* topdoc
+  name: No Shadow Navigation Bar
+  class: navigation-bar--noshadow
+  use: Toolbar Button, Navigation Bar
+  markup:
+    <div class="navigation-bar navigation-bar--noshadow">
+      <div class="navigation-bar__left">
+        <span class="toolbar-button--quiet">
+          <i class="ion-navicon" style="font-size:32px; vertical-align:-6px;"></i>
+        </span>
+      </div>
+      <div class="navigation-bar__center">
+        Navigation Bar
+      </div>
+      <div class="navigation-bar__right">
+        <span class="toolbar-button--quiet">Label</span>
+      </div>
+    </div>
+*/
 .navigation-bar--noshadow {
   -webkit-box-shadow: none;
   box-shadow: none;
@@ -1125,6 +1096,32 @@ ons-range[disabled] .range {
       </div>
     </div>
 */
+/* topdoc
+  name: Transparent Navigation Bar
+  class: navigation-bar--transparent
+  use: Toolbar Button, Navigation Bar
+  markup:
+    <div class="navigation-bar navigation-bar--transparent">
+      <div class="navigation-bar__left">
+        <span class="toolbar-button--quiet">
+          <i class="ion-navicon" style="font-size:32px; vertical-align:-6px;"></i>
+        </span>
+      </div>
+      <div class="navigation-bar__center">
+        Navigation Bar
+      </div>
+      <div class="navigation-bar__right">
+        <span class="toolbar-button--quiet">Label</span>
+      </div>
+    </div>
+*/
+.navigation-bar--transparent {
+  background-color: transparent;
+  -webkit-box-shadow: none;
+  box-shadow: none;
+  background-image: none;
+  border-bottom: none;
+}
 /* topdoc
   name: Button
   class: button
@@ -1219,7 +1216,7 @@ ons-range[disabled] .range {
   color: rgba(24,103,194,0.81);
 }
 .button--outline:active {
-  background-color: 0.81;
+  background-color: rgba(24,103,194,0.2);
   border: 1px solid rgba(24,103,194,0.81);
   color: rgba(24,103,194,0.81);
   opacity: 1;
@@ -1949,7 +1946,7 @@ ons-range[disabled] .range {
 }
 .button-bar__button:active,
 :active + .button-bar__button {
-  background-color: 0.77;
+  background-color: rgba(18,114,224,0.2);
   border: 0px solid rgba(18,114,224,0.77);
   border-top: 1px solid rgba(18,114,224,0.77);
   border-bottom: 1px solid rgba(18,114,224,0.77);
@@ -2198,6 +2195,16 @@ ons-range[disabled] .range {
   -moz-osx-font-smoothing: grayscale;
   font-weight: 400;
   font-size: 17px;
+}
+.tab-bar__badge.notification {
+  position: absolute;
+  top: 5px;
+  z-index: 10;
+  font-size: 12px;
+  height: 16px;
+  line-height: 16px;
+  -webkit-border-radius: 8px;
+  border-radius: 8px;
 }
 .tab-bar__icon + .tab-bar__label {
   font-size: 10px;
@@ -2672,7 +2679,7 @@ ons-range[disabled] .range {
 }
 .toolbar-button--material:active {
   opacity: 1;
-  background-color: #26a69a;
+  background-color: rgba(255,255,255,0.15);
 }
 .back-button {
   height: 44px;
@@ -2724,7 +2731,7 @@ ons-range[disabled] .range {
 }
 .back-button--material:active {
   opacity: 1;
-  background-color: #26a69a;
+  background-color: rgba(255,255,255,0.15);
 }
 /* topdoc
   name: Checkbox
@@ -4765,7 +4772,31 @@ input[type="search"].search-input::-webkit-search-cancel-button {
   -webkit-transform: translate3d(0, 0, 0);
 }
 .text-input--material__label {
+  color: #afafaf;
+  position: absolute;
+  left: 0px;
+  top: 2px;
+  font-size: 16px;
+  font-weight: 400;
+  font-family: 'Roboto', 'Noto', sans-serif;
+  pointer-events: none;
+}
+.text-input--material__label--active {
   color: #009688;
+  -webkit-transform: translate(0, -75%) scale(0.75);
+  -moz-transform: translate(0, -75%) scale(0.75);
+  -ms-transform: translate(0, -75%) scale(0.75);
+  -o-transform: translate(0, -75%) scale(0.75);
+  transform: translate(0, -75%) scale(0.75);
+  -webkit-transform-origin: left top;
+  -moz-transform-origin: left top;
+  -ms-transform-origin: left top;
+  -o-transform-origin: left top;
+  transform-origin: left top;
+  -webkit-transition: -webkit-transform 0.1s ease-in, color 0.1s ease-in;
+  -moz-transition: -moz-transform 0.1s ease-in, color 0.1s ease-in;
+  -o-transition: -o-transform 0.1s ease-in, color 0.1s ease-in;
+  transition: transform 0.1s ease-in, color 0.1s ease-in;
 }
 .text-input--material:focus {
   background-image: -webkit-gradient(linear, left top, left bottom, from(#009688), to(#009688)), -webkit-gradient(linear, left bottom, left top, color-stop(1px, transparent), color-stop(1px, #afafaf));
@@ -4801,7 +4832,6 @@ input[type="search"].search-input::-webkit-search-cancel-button {
   0% {
     background-size: 0% 2px, 100% 2px;
   }
-
   100% {
     background-size: 100% 2px, 100% 2px;
   }
@@ -4811,7 +4841,6 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     -webkit-background-size: 0% 2px, 100% 2px;
     background-size: 0% 2px, 100% 2px;
   }
-
   100% {
     -webkit-background-size: 100% 2px, 100% 2px;
     background-size: 100% 2px, 100% 2px;
@@ -4821,16 +4850,6 @@ input[type="search"].search-input::-webkit-search-cancel-button {
   0% {
     background-size: 0% 2px, 100% 2px;
   }
-
-  100% {
-    background-size: 100% 2px, 100% 2px;
-  }
-}
-@-ms-keyframes material-text-input-animate {
-  0% {
-    background-size: 0% 2px, 100% 2px;
-  }
-
   100% {
     background-size: 100% 2px, 100% 2px;
   }
@@ -4840,7 +4859,6 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     -webkit-background-size: 0% 2px, 100% 2px;
     background-size: 0% 2px, 100% 2px;
   }
-
   100% {
     -webkit-background-size: 100% 2px, 100% 2px;
     background-size: 100% 2px, 100% 2px;
@@ -5827,12 +5845,10 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     left: -35%;
     right: 100%;
   }
-
   60% {
     left: 100%;
     right: -90%;
   }
-
   100% {
     left: 100%;
     right: -90%;
@@ -5843,12 +5859,10 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     left: -35%;
     right: 100%;
   }
-
   60% {
     left: 100%;
     right: -90%;
   }
-
   100% {
     left: 100%;
     right: -90%;
@@ -5859,28 +5873,10 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     left: -35%;
     right: 100%;
   }
-
   60% {
     left: 100%;
     right: -90%;
   }
-
-  100% {
-    left: 100%;
-    right: -90%;
-  }
-}
-@-ms-keyframes progress-bar__indeterminate {
-  0% {
-    left: -35%;
-    right: 100%;
-  }
-
-  60% {
-    left: 100%;
-    right: -90%;
-  }
-
   100% {
     left: 100%;
     right: -90%;
@@ -5891,12 +5887,10 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     left: -35%;
     right: 100%;
   }
-
   60% {
     left: 100%;
     right: -90%;
   }
-
   100% {
     left: 100%;
     right: -90%;
@@ -5907,12 +5901,10 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     left: -200%;
     right: 100%;
   }
-
   60% {
     left: 107%;
     right: -8%;
   }
-
   100% {
     left: 107%;
     right: -8%;
@@ -5923,12 +5915,10 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     left: -200%;
     right: 100%;
   }
-
   60% {
     left: 107%;
     right: -8%;
   }
-
   100% {
     left: 107%;
     right: -8%;
@@ -5939,28 +5929,10 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     left: -200%;
     right: 100%;
   }
-
   60% {
     left: 107%;
     right: -8%;
   }
-
-  100% {
-    left: 107%;
-    right: -8%;
-  }
-}
-@-ms-keyframes progress-bar__indeterminate-short {
-  0% {
-    left: -200%;
-    right: 100%;
-  }
-
-  60% {
-    left: 107%;
-    right: -8%;
-  }
-
   100% {
     left: 107%;
     right: -8%;
@@ -5971,12 +5943,10 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     left: -200%;
     right: 100%;
   }
-
   60% {
     left: 107%;
     right: -8%;
   }
-
   100% {
     left: 107%;
     right: -8%;
@@ -6059,12 +6029,6 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     transform: rotate(360deg);
   }
 }
-@-ms-keyframes progress__rotate {
-  100% {
-    -ms-transform: rotate(360deg);
-    transform: rotate(360deg);
-  }
-}
 @keyframes progress__rotate {
   100% {
     -webkit-transform: rotate(360deg);
@@ -6078,12 +6042,10 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     stroke-dasharray: 10%, 241.32%;
     stroke-dashoffset: 0%;
   }
-
   50% {
     stroke-dasharray: 201%, 50.322%;
     stroke-dashoffset: -100%;
   }
-
   100% {
     stroke-dasharray: 10%, 241.32%;
     stroke-dashoffset: -251.32%;
@@ -6094,12 +6056,10 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     stroke-dasharray: 10%, 241.32%;
     stroke-dashoffset: 0%;
   }
-
   50% {
     stroke-dasharray: 201%, 50.322%;
     stroke-dashoffset: -100%;
   }
-
   100% {
     stroke-dasharray: 10%, 241.32%;
     stroke-dashoffset: -251.32%;
@@ -6110,28 +6070,10 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     stroke-dasharray: 10%, 241.32%;
     stroke-dashoffset: 0%;
   }
-
   50% {
     stroke-dasharray: 201%, 50.322%;
     stroke-dashoffset: -100%;
   }
-
-  100% {
-    stroke-dasharray: 10%, 241.32%;
-    stroke-dashoffset: -251.32%;
-  }
-}
-@-ms-keyframes progress__dash {
-  0% {
-    stroke-dasharray: 10%, 241.32%;
-    stroke-dashoffset: 0%;
-  }
-
-  50% {
-    stroke-dasharray: 201%, 50.322%;
-    stroke-dashoffset: -100%;
-  }
-
   100% {
     stroke-dasharray: 10%, 241.32%;
     stroke-dashoffset: -251.32%;
@@ -6142,12 +6084,10 @@ input[type="search"].search-input::-webkit-search-cancel-button {
     stroke-dasharray: 10%, 241.32%;
     stroke-dashoffset: 0%;
   }
-
   50% {
     stroke-dasharray: 201%, 50.322%;
     stroke-dashoffset: -100%;
   }
-
   100% {
     stroke-dasharray: 10%, 241.32%;
     stroke-dashoffset: -251.32%;
@@ -6239,7 +6179,7 @@ input[type="search"].search-input::-webkit-search-cancel-button {
 }
 .fab:disabled,
 .fab[disabled] {
-  background-color: 1;
+  background-color: rgba(0,0,0,0.5);
   -webkit-box-shadow: none;
   box-shadow: none;
   opacity: 0.3;

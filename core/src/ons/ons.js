@@ -16,6 +16,7 @@ limitations under the License.
 */
 
 import util from './util';
+import animit from './animit'
 import GestureDetector from './gesture-detector';
 import platform from './platform';
 import notification from './notification';
@@ -29,6 +30,7 @@ import autoStyle from './autostyle';
 import DoorLock from './doorlock';
 import contentReady from './content-ready';
 import {defaultPageLoader, PageLoader} from './page-loader';
+import BaseAnimator from './base-animator';
 
 /**
  * @object ons
@@ -40,6 +42,7 @@ import {defaultPageLoader, PageLoader} from './page-loader';
 const ons = {};
 
 ons._util = util;
+ons.animit = animit;
 ons._deviceBackButtonDispatcher = deviceBackButtonDispatcher;
 ons._internal = internal;
 ons.GestureDetector = GestureDetector;
@@ -54,6 +57,7 @@ ons._DoorLock = DoorLock;
 ons._contentReady = contentReady;
 ons.defaultPageLoader = defaultPageLoader;
 ons.PageLoader = PageLoader;
+ons._BaseAnimator = BaseAnimator;
 
 ons._readyLock = new DoorLock();
 
@@ -252,7 +256,6 @@ ons._createPopoverOriginal = function(page, options = {}) {
     const div = ons._util.createElement('<div>' + html + '</div>');
 
     const popover = div.querySelector('ons-popover');
-    CustomElements.upgrade(popover);
     document.body.appendChild(popover);
 
     if (options.link instanceof Function) {
@@ -301,7 +304,6 @@ ons._createDialogOriginal = function(page, options = {}) {
     const div = ons._util.createElement('<div>' + html + '</div>');
 
     const dialog = div.querySelector('ons-dialog');
-    CustomElements.upgrade(dialog);
     document.body.appendChild(dialog);
 
     if (options.link instanceof Function) {
@@ -347,7 +349,6 @@ ons._createAlertDialogOriginal = function(page, options = {}) {
     const div = ons._util.createElement('<div>' + html + '</div>');
 
     const alertDialog = div.querySelector('ons-alert-dialog');
-    CustomElements.upgrade(alertDialog);
     document.body.appendChild(alertDialog);
 
     if (options.link instanceof Function) {
@@ -444,7 +445,7 @@ ons._resolveLoadingPlaceholder = function(element, page, link) {
 
 function waitDeviceReady() {
   const unlockDeviceReady = ons._readyLock.lock();
-  window.addEventListener('WebComponentsReady', () => {
+  window.addEventListener('DOMContentLoaded', () => {
     if (ons.isWebView()) {
       window.document.addEventListener('deviceready', unlockDeviceReady, false);
     } else {

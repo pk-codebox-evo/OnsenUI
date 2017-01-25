@@ -97,7 +97,7 @@ util.isAttached = (element) => {
 util.hasAnyComponentAsParent = (element) => {
   while (element && document.documentElement !== element) {
     element = element.parentNode;
-    if (element && element.nodeName.toLowerCase().match(/(ons-navigator|ons-tabbar|ons-sliding-menu|ons-split-view)/)) {
+    if (element && element.nodeName.toLowerCase().match(/(ons-navigator|ons-tabbar|ons-modal|ons-sliding-menu|ons-split-view)/)) {
       return true;
     }
   }
@@ -144,7 +144,7 @@ util.create = (selector = '', style = {}) => {
  */
 util.createElement = (html) => {
   const wrapper = document.createElement('div');
-  wrapper.innerHTML = html;
+  innerHTML(wrapper, html);
 
   if (wrapper.children.length > 1) {
     throw new Error('"html" must be one wrapper element.');
@@ -159,7 +159,7 @@ util.createElement = (html) => {
  */
 util.createFragment = (html) => {
   const wrapper = document.createElement('div');
-  wrapper.innerHTML = html;
+  innerHTML(wrapper, html);
   const fragment = document.createDocumentFragment();
 
   while (wrapper.firstChild) {
@@ -350,6 +350,18 @@ util.isInteger = (value) => {
   return typeof value === 'number' &&
     isFinite(value) &&
     Math.floor(value) === value;
+};
+
+/**
+ * @return {Obejct} Deferred promise.
+ */
+util.defer = () => {
+  const deferred = {};
+  deferred.promise = new Promise((resolve, reject) => {
+    deferred.resolve = resolve;
+    deferred.reject = reject;
+  });
+  return deferred;
 };
 
 export default util;

@@ -28,7 +28,6 @@
       transclude: false,
 
       compile: (element, attrs) => {
-        CustomElements.upgrade(element[0]);
 
         return {
           pre: function(scope, element, attrs) {
@@ -37,8 +36,6 @@
 
             $onsen.declareVarAttribute(attrs, modal);
             element.data('ons-modal', modal);
-
-            element[0]._ensureNodePosition();
 
             scope.$on('$destroy', function() {
               $onsen.removeModifierMethods(modal);

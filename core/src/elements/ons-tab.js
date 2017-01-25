@@ -15,31 +15,36 @@ limitations under the License.
 
 */
 
-import util from 'ons/util';
-import autoStyle from 'ons/autostyle';
-import ModifierUtil from 'ons/internal/modifier-util';
-import BaseElement from 'ons/base-element';
-import internal from 'ons/internal';
-import OnsTabbarElement from './ons-tabbar';
-import contentReady from 'ons/content-ready';
-import {PageLoader, defaultPageLoader} from 'ons/page-loader';
+import util from '../ons/util';
+import autoStyle from '../ons/autostyle';
+import ModifierUtil from '../ons/internal/modifier-util';
+import BaseElement from '../ons/base-element';
+import internal from '../ons/internal';
+import TabbarElement from './ons-tabbar';
+import contentReady from '../ons/content-ready';
+import {PageLoader, defaultPageLoader} from '../ons/page-loader';
+
+const defaultClassName = 'tab-bar__item';
 
 const scheme = {
   '': 'tab-bar--*__item',
   '.tab-bar__button': 'tab-bar--*__button'
 };
+
 const templateSource = util.createElement(`
   <div>
     <input type="radio" style="display: none">
-    <button class="tab-bar__button tab-bar-inner"></button>
+    <button class="tab-bar__button"></button>
   </div>
 `);
+
 const defaultInnerTemplateSource = util.createElement(`
   <div>
     <div class="tab-bar__icon">
       <ons-icon icon="ion-cloud"></ons-icon>
     </div>
     <div class="tab-bar__label">label</div>
+    <div class="tab-bar__badge notification">1</div>
   </div>
 `);
 
@@ -54,10 +59,10 @@ const defaultInnerTemplateSource = util.createElement(`
  *   [/ja]
  * @codepen pGuDL
  * @tutorial vanilla/Reference/tabbar
- * @guide UsingTabBar
- *   [en]Using tab bar[/en]
- *   [ja]タブバーを使う[/ja]
- * @guide DefiningMultiplePagesinSingleHTML
+ * @guide multiple-page-navigation
+ *   [en]Managing multiple pages.[/en]
+ *   [ja]Managing multiple pages[/ja]]
+ * @guide templates
  *   [en]Defining multiple pages in single html[/en]
  *   [ja]複数のページを1つのHTMLに記述する[/ja]
  * @seealso ons-tabbar
@@ -92,7 +97,7 @@ const defaultInnerTemplateSource = util.createElement(`
  * </ons-template>
 
  */
-class TabElement extends BaseElement {
+export default class TabElement extends BaseElement {
 
   /**
    * @attribute page
@@ -134,25 +139,29 @@ class TabElement extends BaseElement {
    */
 
   /**
+   * @attribute badge
+   * @type {String}
+   * @description
+   *   [en]Display a notification badge on top of the tab.[/en]
+   *   [ja]バッジに表示する内容を指定します。[/ja]
+   */
+
+  /**
    * @attribute active
    * @description
    *   [en]This attribute should be set to the tab that is active by default.[/en]
    *   [ja][/ja]
    */
 
-  createdCallback() {
+  init() {
     this._pageLoader = defaultPageLoader;
     this._page = null;
 
-    if (this.hasAttribute('label') || this.hasAttribute('icon')) {
-      if (!this.hasAttribute('_compiled')) {
-        this._compile();
-      }
+    if (this.hasAttribute('label') || this.hasAttribute('icon') || this.hasAttribute('badge')) {
+      this._compile();
     } else {
       contentReady(this, () => {
-        if (!this.hasAttribute('_compiled')) {
-          this._compile();
-        }
+        this._compile();
       });
     }
 
@@ -182,42 +191,54 @@ class TabElement extends BaseElement {
     return this._pageLoader;
   }
 
+  _templateLoaded() {
+    if (this.children.length == 0) {
+      return false;
+    }
+
+    const hasInput = this.children[0].getAttribute('type') === 'radio';
+    const hasButton = util.findChild(this, '.tab-bar__button');
+
+    return hasInput && hasButton;
+  }
+
   _compile() {
     autoStyle.prepare(this);
 
-    const fragment = document.createDocumentFragment();
-    let hasChildren = false;
+    this.classList.add(defaultClassName);
 
-    while (this.childNodes[0]) {
-      const node = this.childNodes[0];
-      this.removeChild(node);
-      fragment.appendChild(node);
+    if (!this._templateLoaded()) {
+      const fragment = document.createDocumentFragment();
+      let hasChildren = false;
 
-      if (node.nodeType == Node.ELEMENT_NODE) {
-        hasChildren = true;
+      while (this.childNodes[0]) {
+        const node = this.childNodes[0];
+        this.removeChild(node);
+        fragment.appendChild(node);
+
+        if (node.nodeType == Node.ELEMENT_NODE) {
+          hasChildren = true;
+        }
       }
-    }
 
-    const template = templateSource.cloneNode(true);
-    while (template.children[0]) {
-      this.appendChild(template.children[0]);
-    }
-    this.classList.add('tab-bar__item');
+      const template = templateSource.cloneNode(true);
+      while (template.children[0]) {
+        this.appendChild(template.children[0]);
+      }
 
-    const button = util.findChild(this, '.tab-bar__button');
+      const button = util.findChild(this, '.tab-bar__button');
 
-    if (hasChildren) {
-      button.appendChild(fragment);
-      this._hasDefaultTemplate = false;
-    } else {
-      this._hasDefaultTemplate = true;
-      this._updateDefaultTemplate();
+      if (hasChildren) {
+        button.appendChild(fragment);
+        this._hasDefaultTemplate = false;
+      } else {
+        this._hasDefaultTemplate = true;
+        this._updateDefaultTemplate();
+      }
     }
 
     ModifierUtil.initModifier(this, scheme);
     this._updateRipple();
-
-    this.setAttribute('_compiled', '');
   }
 
   _updateRipple() {
@@ -230,28 +251,36 @@ class TabElement extends BaseElement {
     }
 
     const button = util.findChild(this, '.tab-bar__button');
-
+    const template = defaultInnerTemplateSource.cloneNode(true);
     if (button.children.length == 0) {
-      const template = defaultInnerTemplateSource.cloneNode(true);
       while (template.children[0]) {
         button.appendChild(template.children[0]);
       }
+    }
 
-      if (!button.querySelector('.tab-bar__icon')) {
-        button.insertBefore(template.querySelector('.tab-bar__icon'), button.firstChild);
-      }
+    if (!button.querySelector('.tab-bar__icon')) {
+      button.insertBefore(template.querySelector('.tab-bar__icon'), button.firstChild);
+    }
 
-      if (!button.querySelector('.tab-bar__label')) {
-        button.appendChild(template.querySelector('.tab-bar__label'));
-      }
+    if (!button.querySelector('.tab-bar__label')) {
+      button.appendChild(template.querySelector('.tab-bar__label'));
+    }
+
+    if (!button.querySelector('.tab-bar__badge')) {
+      button.appendChild(template.querySelector('.tab-bar__badge'));
     }
 
     const self = this;
     const icon = this.getAttribute('icon');
     const label = this.getAttribute('label');
+    const badge = this.getAttribute('badge');
 
     if (typeof icon === 'string') {
-      getIconElement().setAttribute('icon', icon);
+      const iconElement = getIconElement();
+      const last = iconElement.getAttribute('icon');
+      iconElement.setAttribute('icon', icon);
+      // dirty fix for https://github.com/OnsenUI/OnsenUI/issues/1654
+      getIconElement().attributeChangedCallback('icon', last, icon);
     } else {
       const wrapper = button.querySelector('.tab-bar__icon');
       if (wrapper) {
@@ -268,12 +297,25 @@ class TabElement extends BaseElement {
       }
     }
 
+    if (typeof badge === 'string') {
+      getBadgeElement().textContent = badge;
+    } else {
+      const badge = getBadgeElement();
+      if (badge) {
+        badge.remove();
+      }
+    }
+
     function getLabelElement() {
       return self.querySelector('.tab-bar__label');
     }
 
     function getIconElement() {
       return self.querySelector('ons-icon');
+    }
+
+    function getBadgeElement() {
+      return self.querySelector('.tab-bar__badge');
     }
   }
 
@@ -309,31 +351,44 @@ class TabElement extends BaseElement {
   /**
    * @param {Element} parent
    * @param {Function} callback
-   * @param {Function} link
    */
-  _loadPageElement(parent, callback, link) {
-    if (!this._loadedPage) {
-      this._pageLoader.load(this._getPageTarget(), parent, page => {
-        this._loadedPage = page;
-        link(page.element, element => {
-          page.element = element;
-          callback(page.element);
-        });
+  _loadPageElement(parent, callback) {
+    if (!this._loadedPage && !this._getPageTarget()) {
+      const pages = this._findTabbarElement().pages;
+      const index = this._findTabIndex();
+      if (!pages[index]) {
+        throw Error('Page was not provided to <ons-tab> index ' + index);
+      }
+      callback(pages[index]);
+    } else if (this._loadingPage) {
+      this._loadingPage.then(pageElement => {
+        callback(pageElement);
+      });
+    } else if (!this._loadedPage) {
+      const deferred = util.defer();
+      this._loadingPage = deferred.promise;
+
+      this._pageLoader.load({page: this._getPageTarget(), parent}, pageElement => {
+        this._loadedPage = pageElement;
+        deferred.resolve(pageElement);
+        delete this._loadingPage;
+
+        callback(pageElement);
       });
     } else {
-      callback(this._loadedPage.element);
+      callback(this._loadedPage);
     }
   }
 
   _loadPage(page, parent, callback) {
-    this._pageLoader.load(page, parent, page => {
-      callback(page.element);
+    this._pageLoader.load({page, parent}, pageElement => {
+      callback(pageElement);
     });
   }
 
   get pageElement() {
     if (this._loadedPage) {
-      return this._loadedPage.element;
+      return this._loadedPage;
     }
 
     const tabbar = this._findTabbarElement();
@@ -349,15 +404,15 @@ class TabElement extends BaseElement {
     return this.classList.contains('active');
   }
 
-  detachedCallback() {
+  disconnectedCallback() {
     this.removeEventListener('click', this._boundOnClick, false);
     if (this._loadedPage) {
-      this._loadedPage.unload();
+      this._pageLoader.unload(this._loadedPage);
       this._loadedPage = null;
     }
   }
 
-  attachedCallback() {
+  connectedCallback() {
     contentReady(this, () => {
       this._ensureElementPosition();
 
@@ -368,25 +423,21 @@ class TabElement extends BaseElement {
         this.setAttribute('modifier', prefix + tabbar.getAttribute('modifier'));
       }
 
-      if (this.hasAttribute('active')) {
-        const tabIndex = this._findTabIndex();
+      const onReady = () => {
+        if (this._getPageTarget() && !this.hasLoaded) {
+          this.hasLoaded = true;
+          this._loadPageElement(tabbar._contentElement, pageElement => {
+            pageElement.style.display = 'none';
+            tabbar._contentElement.appendChild(pageElement);
 
-        OnsTabbarElement.rewritables.ready(tabbar, () => {
-          setImmediate(() => tabbar.setActiveTab(tabIndex, {animation: 'none'}));
-        });
-      } else {
-        const onReady = () => {
-          if (this._getPageTarget()) {
-            this._loadPageElement(tabbar._contentElement, pageElement => {
-              pageElement.style.display = 'none';
-              tabbar._contentElement.appendChild(pageElement);
-            }, (pageElement, done) => {
-              OnsTabbarElement.rewritables.link(tabbar, pageElement, {}, element => done(element));
-            });
-          }
-        };
-        OnsTabbarElement.rewritables.ready(tabbar, onReady);
-      }
+            if (this.hasAttribute('active')) {
+              tabbar.setActiveTab(this._findTabIndex());
+            }
+          });
+        }
+      };
+
+      TabbarElement.rewritables.ready(tabbar, onReady);
 
       this.addEventListener('click', this._boundOnClick, false);
     });
@@ -419,8 +470,17 @@ class TabElement extends BaseElement {
     }
   }
 
+  static get observedAttributes() {
+    return ['modifier', 'ripple', 'icon', 'label', 'page', 'badge', 'class'];
+  }
+
   attributeChangedCallback(name, last, current) {
     switch (name) {
+      case 'class':
+        if (!this.classList.contains(defaultClassName)) {
+          this.className = defaultClassName + ' ' + current;
+        }
+        break;
       case 'modifier':
         contentReady(this, () => ModifierUtil.onModifierChanged(last, current, this, scheme));
         break;
@@ -429,6 +489,7 @@ class TabElement extends BaseElement {
         break;
       case 'icon':
       case 'label':
+      case 'badge':
         contentReady(this, () => this._updateDefaultTemplate());
         break;
       case 'page':
@@ -440,10 +501,4 @@ class TabElement extends BaseElement {
   }
 }
 
-window.OnsTabElement = document.registerElement('ons-tab', {
-  prototype: TabElement.prototype
-});
-
-document.registerElement('ons-tabbar-item', {
-  prototype: Object.create(TabElement.prototype)
-});
+customElements.define('ons-tab', TabElement);

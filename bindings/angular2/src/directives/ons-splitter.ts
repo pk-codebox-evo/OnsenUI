@@ -6,69 +6,109 @@ import {
   ElementRef,
   Input,
   OnDestroy,
+  ReflectiveInjector,
   OnInit,
   ViewContainerRef,
-  ComponentResolver
+  ComponentFactoryResolver,
+  NgZone
 } from '@angular/core';
+import {Params} from '../ons/params';
 
-
-export class BasePageLoaderDirectiveImpl implements OnInit, OnDestroy {
-  public pageComponentType: Type;
-  private _pageComponent: ComponentRef<any>;
-
-  constructor(
-    private _elementRef: ElementRef,
-    private _viewContainer: ViewContainerRef,
-    private _resolver: ComponentResolver) {
-  }
-
-  ngOnInit() {
-    if (this.pageComponentType) {
-      this._resolver.resolveComponent(this.pageComponentType).then(factory => {
-        if (this._pageComponent) {
-          this._pageComponent.destroy();
-        }
-        this._pageComponent = this._viewContainer.createComponent(factory, 0, this._viewContainer.injector);
-
-        // dirty fix to insert in correct position
-        const pageElement = this._pageComponent.location.nativeElement
-        this._elementRef.nativeElement.appendChild(pageElement);
-      });
-    }
-  }
-
-  ngOnDestroy() {
-    if (this._pageComponent) {
-      this._pageComponent.destroy();
-      this._pageComponent = null;
-    }
-  }
-}
+declare const ons: any;
 
 /**
  * @element ons-splitter-side
  * @directive OnsSplitterSide
  * @selector ons-splitter-side
  * @description
- *    [en]Angular 2 directive for `<ons-splitter-side>` component.[/en]
+ *   [ja]`<ons-splitter-side>`要素のAngular 2ディレクティブです。[/ja]
+ *   [en]Angular 2 directive for `<ons-splitter-side>` component.[/en]
+ * @example
+ *   @Component({
+ *     selector: 'ons-page',
+ *     template: `
+ *       <ons-toolbar>
+ *         <div class="center">Left Page</div> 
+ *       </ons-toolbar>
+ *       <div class="background"></div>
+ *       <div class="content">
+ *         Left
+ *       </div>
+ *     `
+ *   })
+ *   class SidePageComponent { }
+ *
+ *   @Component({
+ *     selector: 'app',
+ *     template: `
+ *     <ons-splitter>
+ *       <ons-splitter-side [page]="sidePage" side="left" width="200px">
+ *       </ons-splitter-side>
+ *       <ons-splitter-content>...</ons-splitter-content>
+ *     </ons-splitter>
+ *     `
+ *   })
+ *   export class AppComponent {
+ *     sidePage = SidePageComponent;
+ *   }
  */
 @Directive({
   selector: 'ons-splitter-side'
 })
-export class OnsSplitterSide extends BasePageLoaderDirectiveImpl {
+export class OnsSplitterSide {
 
   /**
    * @input page
-   * @type {Type}
-   * @desc [en]Page content.[/en]
+   * @type {Type<any>}
+   * @desc
+   *   [en]Page content.[/en]
+   *   [ja]表示するページコンポーネントのクラスを指定します。[/en]
    */
-  @Input('page') pageComponentType: Type;
+  @Input('page') set page(page: Type<any>) {
+    this.element.page = page;
+  }
 
   constructor(
-    _elementRef: ElementRef,
-    _viewContainer: ViewContainerRef,
-    _resolver: ComponentResolver) {
-      super(_elementRef, _viewContainer, _resolver);
+    private _elementRef: ElementRef,
+    private _viewContainer: ViewContainerRef,
+    private _resolver: ComponentFactoryResolver,
+    private _injector: Injector,
+    private _zone: NgZone) {
+    this.element.pageLoader = this._createPageLoader();
+  }
+
+  get element() {
+    return this._elementRef.nativeElement;
+  }
+
+  _createPageLoader() {
+    const componentRefMap:WeakMap<HTMLElement, ComponentRef<any>> = new WeakMap<HTMLElement, ComponentRef<any>>();
+
+    return new ons.PageLoader(
+      ({page, parent, params}, done: Function) => {
+        this._zone.run(() => {
+          const injector = ReflectiveInjector.resolveAndCreate([
+            {provide: Params, useValue: new Params(params || {})},
+            {provide: OnsSplitterSide, useValue: this}
+          ], this._injector);
+
+          const factory = this._resolver.resolveComponentFactory(page);
+          const pageComponentRef = this._viewContainer.createComponent(factory, 0, injector);
+          const pageElement = pageComponentRef.location.nativeElement;
+          componentRefMap.set(pageElement, pageComponentRef);
+
+          this.element.appendChild(pageElement); // dirty fix to insert in correct position
+
+          done(pageElement);
+        });
+      },
+      element => {
+        if (componentRefMap.has(element)) {
+          componentRefMap.get(element).destroy();
+          componentRefMap.delete(element);
+        }
+      }
+    );
   }
 }
 
@@ -77,23 +117,61 @@ export class OnsSplitterSide extends BasePageLoaderDirectiveImpl {
  * @directive OnsSplitterContent
  * @selector ons-splitter-content
  * @description
+ *    [ja]`<ons-splitter-content>`要素のためのAngular2 ディレクティブです。[/ja]
  *    [en]Angular 2 directive for `<ons-splitter-content>` component.[/en]
  */
 @Directive({
   selector: 'ons-splitter-content'
 })
-export class OnsSplitterContent extends BasePageLoaderDirectiveImpl {
+export class OnsSplitterContent {
   /**
    * @input page
-   * @type {Type}
-   * @desc [en]Page content.[/en]
+   * @type {Type<any>}
+   * @desc
+   *   [en]Specify the page component.[/en]
+   *   [ja]表示するページコンポーネントのクラスを指定します。[/en]
    */
-  @Input('page') pageComponentType: Type;
+  @Input('page') set page(page: Type<any>) {
+    this.element.page = page;
+  }
 
   constructor(
-    _elementRef: ElementRef,
-    _viewContainer: ViewContainerRef,
-    _resolver: ComponentResolver) {
-      super(_elementRef, _viewContainer, _resolver);
+    private _elementRef: ElementRef,
+    private _viewContainer: ViewContainerRef,
+    private _resolver: ComponentFactoryResolver,
+    private _injector: Injector) {
+    this.element.pageLoader = this._createPageLoader();
+  }
+
+  get element() {
+    return this._elementRef.nativeElement;
+  }
+
+  _createPageLoader() {
+    const componentRefMap:WeakMap<HTMLElement, ComponentRef<any>> = new WeakMap<HTMLElement, ComponentRef<any>>();
+
+    return new ons.PageLoader(
+      ({page, parent, params}, done: Function) => {
+        const injector = ReflectiveInjector.resolveAndCreate([
+          {provide: Params, useValue: new Params(params || {})},
+          {provide: OnsSplitterContent, useValue: this}
+        ], this._injector);
+
+        const factory = this._resolver.resolveComponentFactory(page);
+        const pageComponentRef = this._viewContainer.createComponent(factory, 0, injector);
+        const pageElement = pageComponentRef.location.nativeElement;
+        componentRefMap.set(pageElement, pageComponentRef);
+
+        this.element.appendChild(pageElement); // dirty fix to insert in correct position
+
+        done(pageElement);
+      },
+      element => {
+        if (componentRefMap.has(element)) {
+          componentRefMap.get(element).destroy();
+          componentRefMap.delete(element);
+        }
+      }
+    );
   }
 }
